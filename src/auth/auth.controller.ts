@@ -14,16 +14,15 @@ export class AuthController {
   constructor(private authService: AuthService, private usersService: UsersService) {
   }
 
-
-  @Post('login')
   @UseGuards(LoginGuard)
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   async loginUser(
     @Body() loginUserDto: LoginUserDto
   ) {
     const user = await this.usersService.login(loginUserDto);
     const access = await this.authService.generateAccessToken(user);
-    const refresh = await this.authService.generateRefreshToken(user._id as string);
+    const refresh = await this.authService.generateRefreshToken(user._id as unknown as string);
 
     return {
       ...access, ...refresh, user: {
@@ -35,32 +34,29 @@ export class AuthController {
     };
   }
 
-  @Post('registration')
   @UseGuards(RegistrationGuard)
-  @HttpCode(HttpStatus.OK)
+  @Post('registration')
   async registerUser(
     @Body() createUserDto: CreateUserDto
   ) {
-    await this.usersService.registartion(createUserDto);
+    await this.usersService.registration(createUserDto);
 
     return {
       msg: 'User successfully created!'
     };
   }
 
-  @Post('refresh')
   @UseGuards(RefreshJwtGuard)
+  @Post('refresh')
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
-    @Res() res: Response
   ) {
     const validToken = await this.authService.verifyToken(refreshTokenDto.refresh_token);
-    const user = await this.usersService.findOneUser(validToken.email);
+    const user = await this.usersService.findOneUser(refreshTokenDto.email);
     const access = await this.authService.generateAccessToken(user);
-
     if (validToken.error) {
       if (validToken.error === 'jwt expired') {
-        const refresh = this.authService.generateRefreshToken(user._id as string);
+        const refresh = this.authService.generateRefreshToken(user._id as unknown as string);
         return { ...access, ...refresh };
       } else {
         return { error: validToken.error };

@@ -4,7 +4,8 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import bcrypt from 'bcrypt';
+import { AppError } from '../utils/appError';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -30,22 +31,22 @@ export class UsersService {
     return user as unknown as User;
   }
 
-  async registartion(createUserDto: CreateUserDto): Promise<User | null> {
+  async registration(createUserDto: CreateUserDto): Promise<User | null> {
 
-    const existingUser = this.userModel.findOne({ email: createUserDto.email });
+    if (!createUserDto) {
+      throw  new AppError('Provide all needed data', 400);
+    }
 
+    const existingUser = await this.userModel.findOne({ email: createUserDto.email });
     if (existingUser) {
-      return null;
+      throw  new AppError(`User with this email:${createUserDto.email} exists`, 400);
     }
 
     if (createUserDto.password !== createUserDto.confirmPassword) {
-      return null;
+      throw new AppError(`Password do not corresponds`, 400);
     }
 
-    const salt = await bcrypt.genSalt(12);
-    createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
     const createdUser = new this.userModel(createUserDto);
-
     return createdUser.save();
   }
 

@@ -13,9 +13,10 @@ export class RefreshJwtGuard implements CanActivate {
     //@ts-ignore
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const { request_token, email } = request.body;
+    const { refresh_token, email } = request.body;
 
-    if (!request_token) {
+
+    if (!refresh_token) {
       throw new UnauthorizedException('Field refresh_token is required!');
     }
 

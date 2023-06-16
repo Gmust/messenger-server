@@ -1,15 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose'
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
 
 
 export type UserDocument = User & Document
 
 @Schema()
 export class User {
-  @Prop()
-  _id: ObjectId | string;
+  _id: mongoose.Types.ObjectId;
+
 
   @Prop({
     type: String,

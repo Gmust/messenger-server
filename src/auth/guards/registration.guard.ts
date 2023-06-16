@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
+import { AppError } from '../../utils/appError';
 
 @Injectable()
 export class RegistrationGuard implements CanActivate {
@@ -13,7 +14,12 @@ export class RegistrationGuard implements CanActivate {
     //@ts-ignore
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const { email } = request.body;
+    const { email, name, password, confirmPassword } = request.body;
+
+    if (!email || !name || !password || !confirmPassword) {
+      throw new AppError('Provide all data', 400);
+    }
+
     const user = await this.authService.validateUser(email);
 
     if (user) {
