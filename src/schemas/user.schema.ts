@@ -1,14 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose'
+import { Schema as MongooseSchema } from 'mongoose';
 import validator from 'validator';
-import bcrypt from 'bcrypt';
 
 
 export type UserDocument = User & Document
 
 @Schema()
 export class User {
-  _id: mongoose.Types.ObjectId;
+  _id: MongooseSchema.Types.ObjectId;
 
 
   @Prop({
@@ -65,6 +64,16 @@ export class User {
   confirmPassword;
 
   @Prop({
+    type: Array
+  })
+  friends;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId
+  })
+  pendingFriendRequests
+
+  @Prop({
     type: String
   })
   resetPasswordToken;
@@ -89,12 +98,3 @@ export class User {
 
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.pre('save', async function(next: Function) {
-  if (this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  this.confirmPassword = undefined;
-  next();
-});
-
-

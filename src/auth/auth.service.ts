@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../schemas/user.schema';
@@ -6,7 +6,10 @@ import * as process from 'process';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService) {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService
+  ) {
   }
 
   async validateUser(email: string): Promise<User | null> {

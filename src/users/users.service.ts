@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { AppError } from '../utils/appError';
-import * as bcrypt from 'bcrypt';
+import { Friend_Requests, FriendRequestsDocument } from '../schemas/friendRequests.schema';
+import { AddFriendDto } from './dto/addFriend.dto';
+
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>
   ) {
   }
 
@@ -53,4 +56,27 @@ export class UsersService {
   async findOneUser(email: string): Promise<User> {
     return this.userModel.findOne({ email });
   }
+
+  async addFriend(addFriendDto: AddFriendDto) {
+
+    if (!addFriendDto.sender || !addFriendDto.receiver) {
+      throw new AppError('Both sender and receiver must be registered', 400);
+    }
+
+    const newFriendRequest = new this.friendRequest(addFriendDto);
+
+    return newFriendRequest.save();
+  }
+
+  async getAllFriendsRequests(userId: string) {
+
+
+    const allRequests = await this.friendRequest.find({
+      receiver: userId
+    });
+
+    console.log(allRequests);
+    return;
+  }
+
 }

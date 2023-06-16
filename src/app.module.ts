@@ -10,19 +10,6 @@ import * as bcrypt from 'bcrypt';
 
 @Module({
   imports: [
-    MongooseModule.forFeatureAsync([
-      {
-        name: User.name,
-        useFactory: () => {
-          const schema = UserSchema;
-          schema.pre('save', async function() {
-            this.password = await bcrypt.hash(this.password, 12);
-            this.confirmPassword = undefined;
-          });
-          return schema;
-        }
-      }
-    ]),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useClass: MongooseConfigService
