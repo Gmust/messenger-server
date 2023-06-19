@@ -64,14 +64,15 @@ export class User {
   confirmPassword;
 
   @Prop({
-    type: Array
+    type: Array,
+    default: [],
   })
   friends;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId
   })
-  pendingFriendRequests
+  pendingFriendRequests;
 
   @Prop({
     type: String

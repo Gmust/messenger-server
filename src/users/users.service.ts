@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { isValidObjectId, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
@@ -57,9 +57,8 @@ export class UsersService {
     return this.userModel.findOne({ email });
   }
 
-  async addFriend(addFriendDto: AddFriendDto) {
-
-    if (!addFriendDto.sender || !addFriendDto.receiver) {
+  async addFriend(addFriendDto: AddFriendDto): Promise<Friend_Requests> {
+    if (!addFriendDto.senderId || !addFriendDto.receiverId) {
       throw new AppError('Both sender and receiver must be registered', 400);
     }
 
@@ -68,15 +67,66 @@ export class UsersService {
     return newFriendRequest.save();
   }
 
-  async getAllFriendsRequests(userId: string) {
+  async checkUserInFriends(receiverId: string, senderId: string) {
 
+    const sender = await this.userModel.findOne({ _id: senderId });
+    const receiver = await this.userModel.findOne({ _id: receiverId });
 
+    if (sender.friends.includes(receiverId) || receiver.friends.includes(senderId)) {
+      const doc = await this.friendRequest.findOne({});
+      await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+      throw new AppError('You are already friends!', 400);
+    }
+    return true;
+  }
+
+  async getAllFriendsRequests(userId: string): Promise<Friend_Requests[]> {
     const allRequests = await this.friendRequest.find({
       receiver: userId
     });
 
-    console.log(allRequests);
-    return;
+    return allRequests;
   }
 
+  async acceptFriend(senderId: string, receiverId: string) {
+
+    const user = await this.userModel.findOneAndUpdate(
+      {
+        _id: receiverId
+      },
+      {
+        $push: { friends: senderId }
+      },
+      {
+        runValidators: true
+      }
+    );
+    const friend = await this.userModel.findOneAndUpdate(
+      {
+        _id: senderId
+      },
+      {
+        $push: { friends: receiverId }
+      },
+      {
+        runValidators: true
+      }
+    );
+
+    if (!user) {
+      throw new AppError('User is not found!', 400);
+    }
+
+    if (!friend) {
+      throw new AppError('Friend is not found!', 400);
+    }
+
+    await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+  }
+
+  async declineFriendRequest(senderId: string, receiverId: string) {
+    console.log(senderId);
+    console.log(receiverId);
+    await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+  }
 }

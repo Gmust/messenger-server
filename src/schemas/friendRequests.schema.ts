@@ -14,14 +14,14 @@ export class Friend_Requests {
     ref: 'User',
     required: [true, 'Field senderId is required']
   })
-  sender;
+  senderId;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Field receiverId is required']
   })
-  receiver;
+  receiverId;
 }
 
 export const FriendRequestsSchema = SchemaFactory.createForClass(Friend_Requests);

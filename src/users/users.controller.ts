@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AddFriendDto } from './dto/addFriend.dto';
@@ -15,6 +15,8 @@ export class UsersController {
     @Body() addFriendDto: AddFriendDto
   ) {
 
+    await this.userService.checkUserInFriends(addFriendDto.receiverId, addFriendDto.senderId);
+
     await this.userService.addFriend(addFriendDto);
 
     return {
@@ -27,8 +29,32 @@ export class UsersController {
   async getFriendRequests(
     @Body() body
   ) {
-    await this.userService.getAllFriendsRequests(body.userId);
-    return;
+    const friendRequests = await this.userService.getAllFriendsRequests(body.userId);
+    return friendRequests;
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/accept-friend')
+  async acceptFriend(
+    @Body() body: AddFriendDto
+  ) {
+    await this.userService.checkUserInFriends(body.receiverId, body.senderId);
+    await this.userService.acceptFriend(body.senderId, body.receiverId);
+    return {
+      Msg: 'Successfully added!'
+    };
+  }
+
+
+  @UseGuards(JwtGuard)
+  @Delete('/decline-friend')
+  async declineFriend(
+    @Body() body: AddFriendDto
+  ) {
+    await this.userService.declineFriendRequest(body.senderId, body.receiverId);
+    return {
+      Msg: 'User friend request declined'
+    };
   }
 }
 
