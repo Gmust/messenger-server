@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 import validator from 'validator';
-
+import * as bcrypt from 'bcrypt';
+import e from 'express';
 
 export type UserDocument = User & Document
 
@@ -65,14 +66,9 @@ export class User {
 
   @Prop({
     type: Array,
-    default: [],
+    default: []
   })
   friends;
-
-  @Prop({
-    type: MongooseSchema.Types.ObjectId
-  })
-  pendingFriendRequests;
 
   @Prop({
     type: String
@@ -95,7 +91,28 @@ export class User {
     default: Date.now() - 1
   })
   loginBanExpires;
+
+  createPasswordResetToken: Function;
 }
 
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+async function generateResetToken() {
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash('resetToken', salt);
+    const encodedToken  = encodeURIComponent(hash)
+    return encodedToken;
+  } catch (err) {
+    throw err;
+  }
+}
+
+UserSchema.methods.createPasswordResetToken = async function() {
+  const resetToken = await generateResetToken();
+  this.resetPasswordToken = resetToken;
+  this.resetPasswordExpires = new Date().getTime() + 10 * 60 * 1000;
+
+  return resetToken;
+};

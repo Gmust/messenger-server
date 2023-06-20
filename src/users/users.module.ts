@@ -18,6 +18,8 @@ import * as bcrypt from 'bcrypt';
             this.password = await bcrypt.hash(this.password, 12);
             this.confirmPassword = undefined;
           });
+
+
           return schema;
         }
       },
@@ -26,7 +28,7 @@ import * as bcrypt from 'bcrypt';
         useFactory: () => {
           const schema = FriendRequestsSchema;
           schema.pre('find', async function() {
-            this.populate('sender', '_id email name image');
+            this.populate('senderId', '_id email name image');
           });
           return schema;
         }

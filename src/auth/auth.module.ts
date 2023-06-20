@@ -4,12 +4,14 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { jwtConfig } from '../config/jwt.config';
 import { UsersModule } from '../users/users.module';
+import { EmailModule } from '../email/email.module';
 
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
-    JwtModule.registerAsync(jwtConfig)
+    JwtModule.registerAsync(jwtConfig),
+    EmailModule
   ],
   controllers: [AuthController],
   providers: [AuthService],

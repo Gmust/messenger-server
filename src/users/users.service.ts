@@ -7,6 +7,7 @@ import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { AppError } from '../utils/appError';
 import { Friend_Requests, FriendRequestsDocument } from '../schemas/friendRequests.schema';
 import { AddFriendDto } from './dto/addFriend.dto';
+import { CheckUserDto } from './dto/checkUser.dto';
 
 
 @Injectable()
@@ -53,7 +54,7 @@ export class UsersService {
     return createdUser.save();
   }
 
-  async findOneUser(email: string): Promise<User> {
+  async findOneUser(email: string) {
     return this.userModel.findOne({ email });
   }
 
@@ -67,16 +68,36 @@ export class UsersService {
     return newFriendRequest.save();
   }
 
-  async checkUserInFriends(receiverId: string, senderId: string) {
+  async checkUserInFriends(checkUserDto: CheckUserDto) {
 
-    const sender = await this.userModel.findOne({ _id: senderId });
-    const receiver = await this.userModel.findOne({ _id: receiverId });
+    const sender = await this.userModel.findOne({ _id: checkUserDto.senderId });
+    const receiver = await this.userModel.findOne({ _id: checkUserDto.receiverId });
 
-    if (sender.friends.includes(receiverId) || receiver.friends.includes(senderId)) {
+    if (sender.friends.includes(checkUserDto.receiverId) || receiver.friends.includes(checkUserDto.senderId)) {
       const doc = await this.friendRequest.findOne({});
-      await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+      await this.friendRequest.findOneAndDelete({
+        receiverId: checkUserDto.receiverId,
+        senderId: checkUserDto.senderId
+      });
       throw new AppError('You are already friends!', 400);
     }
+    return true;
+  }
+
+  async checkUserIsAlreadyHasRequest(checkUserDto: CheckUserDto) {
+
+    const friendRequest = await this.friendRequest.findOne(
+      {
+        receiverId: checkUserDto.receiverId,
+        senderId: checkUserDto.senderId
+      }
+    );
+
+
+    if (friendRequest) {
+      throw new AppError('User already has friend request', 400);
+    }
+
     return true;
   }
 

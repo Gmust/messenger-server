@@ -15,8 +15,8 @@ export class UsersController {
     @Body() addFriendDto: AddFriendDto
   ) {
 
-    await this.userService.checkUserInFriends(addFriendDto.receiverId, addFriendDto.senderId);
-
+    await this.userService.checkUserInFriends(addFriendDto);
+    await this.userService.checkUserIsAlreadyHasRequest(addFriendDto)
     await this.userService.addFriend(addFriendDto);
 
     return {
@@ -38,7 +38,7 @@ export class UsersController {
   async acceptFriend(
     @Body() body: AddFriendDto
   ) {
-    await this.userService.checkUserInFriends(body.receiverId, body.senderId);
+    await this.userService.checkUserInFriends(body);
     await this.userService.acceptFriend(body.senderId, body.receiverId);
     return {
       Msg: 'Successfully added!'
