@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -8,6 +8,7 @@ import { LoginGuard } from './guards/login.guard';
 import { RegistrationGuard } from './guards/registration.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -50,7 +51,7 @@ export class AuthController {
   @UseGuards(RefreshJwtGuard)
   @Post('refresh')
   async refreshToken(
-    @Body() refreshTokenDto: RefreshTokenDto,
+    @Body() refreshTokenDto: RefreshTokenDto
   ) {
     const validToken = await this.authService.verifyToken(refreshTokenDto.refresh_token);
     const user = await this.usersService.findOneUser(refreshTokenDto.email);
@@ -68,13 +69,32 @@ export class AuthController {
   }
 
   @Post('/reset-password')
-  async resetUserPassword(
+  async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto
-  ){
-    await this.authService.forgotPassword(forgotPasswordDto)
+  ) {
+    await this.authService.forgotPassword(forgotPasswordDto);
     return {
       Msg: 'Reset url sent to your email!'
-    }
+    };
   }
 
+  @Post('/reset')
+  async resetUserPassword(
+    @Body() resetPasswordDto: ResetPasswordDto
+  ) {
+    try {
+      await this.authService.resetPassword(resetPasswordDto);
+      return {
+        Msg: 'Password reset!'
+      };
+    } catch (e) {
+      throw  new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e });
+    }
+  }
 }

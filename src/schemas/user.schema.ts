@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 import validator from 'validator';
 import * as bcrypt from 'bcrypt';
-import e from 'express';
 
 export type UserDocument = User & Document
 

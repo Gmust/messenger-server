@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../schemas/user.schema';
 import * as process from 'process';
+import { UsersService } from '../users/users.service';
+import { User } from '../schemas/user.schema';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { AppError } from '../utils/appError';
 import { EmailService } from '../email/email.service';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -47,34 +49,27 @@ export class AuthService {
     }
   }
 
-  async parseJwt(token: string) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
+  async parseJwt(token) {
+    const t = String(token);
+    return JSON.parse(Buffer.from(t.split('.')[1], 'base64').toString());
   }
 
-  async getUserByTokenData(token: string): Promise<User> {
+  async getUserByTokenData(token: string) {
     const parsedTokenData = await this.parseJwt(token);
     return this.usersService.findOneUser(parsedTokenData.user.email);
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    console.log(forgotPasswordDto.userEmail)
     const user = await this.usersService.findOneUser(forgotPasswordDto.userEmail);
 
     if (!user) {
       throw new AppError('There isn`t user with such email!', 404);
     }
 
-    const resetToken = await user.createPasswordResetToken();
+    const token = await this.generateAccessToken(user);
+    const resetToken = token.access_token;
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date().getTime() + 10 * 60 * 1000;
     user.save({ validateBeforeSave: false });
 
     try {
@@ -98,6 +93,18 @@ export class AuthService {
     }
   }
 
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const user = await this.getUserByTokenData(resetPasswordDto.token);
 
+    if (!user) {
+      return (new AppError('Token is invalid or has expired!', 400));
+    }
 
+    user.password = resetPasswordDto.newPassword;
+    user.confirmPassword = resetPasswordDto.confirmNewPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+  }
 }
