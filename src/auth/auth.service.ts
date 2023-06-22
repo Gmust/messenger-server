@@ -7,6 +7,7 @@ import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { AppError } from '../utils/appError';
 import { EmailService } from '../email/email.service';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { UserDetails } from '../types/user';
 
 @Injectable()
 export class AuthService {
@@ -21,9 +22,16 @@ export class AuthService {
   async validateUser(email: string): Promise<User | null> {
     const user = await this.usersService.findOneUser(email);
     if (!user) {
-      return null;
+      throw new AppError('There is no user with such email', 400);
     }
     return user;
+  }
+
+  async validateUserForGoogle({ name, email }: UserDetails): Promise<User | null> {
+    const user = await this.usersService.findOneUser(email);
+    if (user) return user;
+    const newUser = await this.usersService.createUser({ email, name });
+    return newUser.save({ validateBeforeSave: false });
   }
 
   async generateAccessToken(user: User) {
@@ -74,7 +82,7 @@ export class AuthService {
 
     try {
 
-      const resetUrl = `http://localhost:3000/auth/reset-password?token=${resetToken}`;
+      const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
 
       await this.emailService.sendEmail({
         emailFrom: process.env.EMAIL_FROM,

@@ -14,7 +14,8 @@ import * as bcrypt from 'bcrypt';
         name: User.name,
         useFactory: () => {
           const schema = UserSchema;
-          schema.pre('save', async function() {
+          schema.pre('save', async function(next) {
+            if (!this.password) next();
             this.password = await bcrypt.hash(this.password, 12);
             this.confirmPassword = undefined;
           });

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -9,11 +9,25 @@ import { RegistrationGuard } from './guards/registration.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { AppError } from '../utils/appError';
+import { GoogleAuthGuard } from './guards/googleAuth.guard';
 
 @Controller('auth')
 export class AuthController {
 
   constructor(private authService: AuthService, private usersService: UsersService) {
+  }
+
+  @Get('google/login')
+  @UseGuards(GoogleAuthGuard)
+  async handleGoogleLogin() {
+
+  }
+
+  @Get('google/redirect')
+  @UseGuards(GoogleAuthGuard)
+  async handleGoogleRedirect() {
+
   }
 
   @UseGuards(LoginGuard)
@@ -68,7 +82,7 @@ export class AuthController {
     }
   }
 
-  @Post('/reset-password')
+  @Post('/forgot-password')
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto
   ) {
@@ -95,6 +109,21 @@ export class AuthController {
         },
         HttpStatus.FORBIDDEN,
         { cause: e });
+    }
+  }
+
+  @Post('/user')
+  async getUserByToken(
+    @Body() { email }: { email: string }
+  ) {
+    try {
+      const user = await this.usersService.findOneUser(email);
+      console.log(user);
+      return {
+        ...user
+      };
+    } catch (e) {
+      throw  new AppError(e.message, '400');
     }
   }
 }

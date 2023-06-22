@@ -8,6 +8,7 @@ import { AppError } from '../utils/appError';
 import { Friend_Requests, FriendRequestsDocument } from '../schemas/friendRequests.schema';
 import { AddFriendDto } from './dto/addFriend.dto';
 import { CheckUserDto } from './dto/checkUser.dto';
+import { UserDetails } from '../types/user';
 
 
 @Injectable()
@@ -56,6 +57,10 @@ export class UsersService {
 
   async findOneUser(email: string) {
     return this.userModel.findOne({ email });
+  }
+
+  async createUser({ name, email }: UserDetails) {
+    return new this.userModel({ name: name, email: email });
   }
 
   async addFriend(addFriendDto: AddFriendDto): Promise<Friend_Requests> {
