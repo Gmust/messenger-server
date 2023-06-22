@@ -27,10 +27,10 @@ export class AuthService {
     return user;
   }
 
-  async validateUserForGoogle({ name, email }: UserDetails): Promise<User | null> {
+  async validateUserForGoogle({ name, email, image }: UserDetails): Promise<User | null> {
     const user = await this.usersService.findOneUser(email);
     if (user) return user;
-    const newUser = await this.usersService.createUser({ email, name });
+    const newUser = await this.usersService.createUser({ email, name, image });
     return newUser.save({ validateBeforeSave: false });
   }
 

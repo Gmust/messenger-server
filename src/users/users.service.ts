@@ -59,8 +59,8 @@ export class UsersService {
     return this.userModel.findOne({ email });
   }
 
-  async createUser({ name, email }: UserDetails) {
-    return new this.userModel({ name: name, email: email });
+  async createUser({ name, email, image }: UserDetails) {
+    return new this.userModel({ name: name, email: email, image: image });
   }
 
   async addFriend(addFriendDto: AddFriendDto): Promise<Friend_Requests> {

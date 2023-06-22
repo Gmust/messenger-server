@@ -27,7 +27,6 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleGoogleRedirect() {
-
   }
 
   @UseGuards(LoginGuard)

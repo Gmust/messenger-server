@@ -1,4 +1,5 @@
 export interface UserDetails {
   name: string,
-  email: string
+  email: string,
+  image: string
 }

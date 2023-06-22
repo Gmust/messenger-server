@@ -21,10 +21,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUserForGoogle(
       {
         email: profile.emails[0].value,
-        name: profile.displayName
+        name: profile.displayName,
+        image: profile.photos[0].value
       }
     );
-    console.log(user);
-    return user || null;
+    const access_token = await this.authService.generateAccessToken(user);
+    return { user: user, access_token: access_token.access_token } || null;
   }
 }
