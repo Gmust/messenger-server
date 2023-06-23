@@ -11,10 +11,7 @@ async function bootstrap() {
   try {
     const PORT = process.env.DB_PORT || 5000;
     const app = await NestFactory.create(AppModule);
-    app.enableCors({
-      credentials: true,
-      origin: process.env.ORIGIN
-    });
+    app.enableCors();
     app.use(
       session({
         secret: process.env.SESSION_SECRET,
@@ -22,8 +19,8 @@ async function bootstrap() {
         resave: false,
         cookie: {
           maxAge: 24 * 60 * 60 * 1000
-        },
-      }),
+        }
+      })
     );
     app.use(passport.initialize());
     app.use(passport.session());

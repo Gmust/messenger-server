@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -26,7 +26,11 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleRedirect() {
+  async handleGoogleRedirect(
+    @Body() body,
+    @Res() res
+  ) {
+    res.redirect(`http://localhost:3000/dashboard?access_token=${res.req.user.access_token}`);
   }
 
   @UseGuards(LoginGuard)
