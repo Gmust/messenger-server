@@ -151,8 +151,6 @@ export class UsersService {
   }
 
   async declineFriendRequest(senderId: string, receiverId: string) {
-    console.log(senderId);
-    console.log(receiverId);
     await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
   }
 }

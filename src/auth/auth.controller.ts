@@ -117,13 +117,17 @@ export class AuthController {
 
   @Post('/user')
   async getUserByToken(
-    @Body() { email }: { email: string }
+    @Body() { token }: { token: string }
   ) {
+
     try {
-      const user = await this.usersService.findOneUser(email);
-      console.log(user);
+      const user = await this.authService.getUserByTokenData(token);
       return {
-        ...user
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        friends: user.friends
       };
     } catch (e) {
       throw  new AppError(e.message, '400');

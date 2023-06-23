@@ -1,7 +1,13 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { v4 as uuidv4 } from 'uuid';
+import { diskStorage } from 'multer';
 import { UsersService } from './users.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AddFriendDto } from './dto/addFriend.dto';
+import * as path from 'path';
+
+export const storage = {};
 
 @Controller('users')
 export class UsersController {
@@ -16,7 +22,7 @@ export class UsersController {
   ) {
 
     await this.userService.checkUserInFriends(addFriendDto);
-    await this.userService.checkUserIsAlreadyHasRequest(addFriendDto)
+    await this.userService.checkUserIsAlreadyHasRequest(addFriendDto);
     await this.userService.addFriend(addFriendDto);
 
     return {
@@ -55,6 +61,36 @@ export class UsersController {
     return {
       Msg: 'User friend request declined'
     };
+  }
+
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('newPhoto', {
+    storage: diskStorage({
+      destination: './uploads/userimages',
+      filename: (req, file, callback) => {
+        const filename = path.parse(file.originalname).name.replace(/\s/g, '') + uuidv4();
+        const extension = path.parse(file.originalname).ext;
+        callback(null, `${filename}${extension}`);
+      }
+    })
+  }))
+  @Patch('/photo')
+  async setNewPhoto(
+    @UploadedFile() newPhoto,
+    @Body() { email }: { email: string }
+  ) {
+    try {
+      const user = await this.userService.findOneUser(email);
+      user.image = newPhoto.filename;
+      user.save({ validateBeforeSave: false });
+
+      return {
+        Msg: 'New image successfully uploaded!'
+      };
+    } catch (e) {
+      console.log(e);
+    }
+
   }
 }
 
