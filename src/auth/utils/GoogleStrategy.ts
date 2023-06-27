@@ -26,6 +26,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       }
     );
     const access_token = await this.authService.generateAccessToken(user);
-    return { user: user, access_token: access_token.access_token } || null;
+    return user || null;
   }
 }

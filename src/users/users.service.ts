@@ -6,7 +6,6 @@ import { LoginUserDto } from '../auth/dto/login-user.dto';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { AppError } from '../utils/appError';
 import { Friend_Requests, FriendRequestsDocument } from '../schemas/friendRequests.schema';
-import { AddFriendDto } from './dto/addFriend.dto';
 import { CheckUserDto } from './dto/checkUser.dto';
 import { UserDetails } from '../types/user';
 
@@ -63,25 +62,29 @@ export class UsersService {
     return new this.userModel({ name: name, email: email, image: image });
   }
 
-  async addFriend(addFriendDto: AddFriendDto): Promise<Friend_Requests> {
-    if (!addFriendDto.senderId || !addFriendDto.receiverId) {
+  async addFriend(addFriendDto: { senderId: string, receiverEmail: string }): Promise<Friend_Requests> {
+    if (!addFriendDto.senderId || !addFriendDto.receiverEmail) {
       throw new AppError('Both sender and receiver must be registered', 400);
     }
+    const receiver = await this.userModel.findOne({ email: addFriendDto.receiverEmail });
 
-    const newFriendRequest = new this.friendRequest(addFriendDto);
-
+    if (!receiver) {
+      throw  new AppError('There is no user with such email', 400);
+    }
+    const newFriendRequest = new this.friendRequest({ senderId: addFriendDto.senderId, receiverId: receiver._id });
     return newFriendRequest.save();
   }
 
   async checkUserInFriends(checkUserDto: CheckUserDto) {
 
     const sender = await this.userModel.findOne({ _id: checkUserDto.senderId });
-    const receiver = await this.userModel.findOne({ _id: checkUserDto.receiverId });
+    const receiver = await this.userModel.findOne({ email: checkUserDto.receiverEmail });
 
-    if (sender.friends.includes(checkUserDto.receiverId) || receiver.friends.includes(checkUserDto.senderId)) {
+
+    if (sender.friends.includes(receiver._id) || receiver.friends.includes(checkUserDto.senderId)) {
       const doc = await this.friendRequest.findOne({});
       await this.friendRequest.findOneAndDelete({
-        receiverId: checkUserDto.receiverId,
+        receiverId: receiver._id,
         senderId: checkUserDto.senderId
       });
       throw new AppError('You are already friends!', 400);
@@ -90,10 +93,13 @@ export class UsersService {
   }
 
   async checkUserIsAlreadyHasRequest(checkUserDto: CheckUserDto) {
+    const receiver = await this.userModel.findOne({
+      email: checkUserDto.receiverEmail
+    });
 
     const friendRequest = await this.friendRequest.findOne(
       {
-        receiverId: checkUserDto.receiverId,
+        receiverId: receiver._id,
         senderId: checkUserDto.senderId
       }
     );
@@ -106,19 +112,30 @@ export class UsersService {
     return true;
   }
 
-  async getAllFriendsRequests(userId: string): Promise<Friend_Requests[]> {
+  async getAllIncomingFriendsRequests(userId: string): Promise<Friend_Requests[]> {
     const allRequests = await this.friendRequest.find({
-      receiver: userId
+      receiverId: userId
+    });
+    return allRequests;
+  }
+
+
+  async getAllOutComingFriendsRequests(userId: string): Promise<Friend_Requests[]> {
+    const allRequests = await this.friendRequest.find({
+      senderId: userId
     });
 
     return allRequests;
   }
 
-  async acceptFriend(senderId: string, receiverId: string) {
+
+  async acceptFriend(senderId: string, receiverEmail: string) {
+
+    const receiver = await this.userModel.findOne({ email: receiverEmail });
 
     const user = await this.userModel.findOneAndUpdate(
       {
-        _id: receiverId
+        _id: receiver._id
       },
       {
         $push: { friends: senderId }
@@ -132,7 +149,7 @@ export class UsersService {
         _id: senderId
       },
       {
-        $push: { friends: receiverId }
+        $push: { friends: receiver._id }
       },
       {
         runValidators: true
@@ -147,7 +164,7 @@ export class UsersService {
       throw new AppError('Friend is not found!', 400);
     }
 
-    await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+    await this.friendRequest.findOneAndDelete({ receiverId: receiver._id, senderId: senderId });
   }
 
   async declineFriendRequest(senderId: string, receiverId: string) {

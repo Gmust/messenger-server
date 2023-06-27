@@ -4,7 +4,7 @@ import { IsNotEmpty } from 'class-validator';
 export class CheckUserDto {
 
   @IsNotEmpty()
-  readonly receiverId: string;
+  readonly receiverEmail: string;
 
   @IsNotEmpty()
   readonly senderId: string;

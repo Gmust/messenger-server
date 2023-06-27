@@ -22,8 +22,9 @@ export class AuthService {
   async validateUser(email: string): Promise<User | null> {
     const user = await this.usersService.findOneUser(email);
     if (!user) {
-      throw new AppError('There is no user with such email', 400);
-    }
+      console.log('here')
+      throw  new AppError('There is  no user with such email', 400);
+    };
     return user;
   }
 
@@ -94,7 +95,6 @@ export class AuthService {
       });
 
     } catch (e) {
-      console.log(e);
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       await user.save({ validateBeforeSave: false });

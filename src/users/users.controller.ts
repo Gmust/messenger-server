@@ -6,6 +6,7 @@ import { UsersService } from './users.service';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AddFriendDto } from './dto/addFriend.dto';
 import * as path from 'path';
+import { CheckUserDto } from './dto/checkUser.dto';
 
 export const storage = {};
 
@@ -18,7 +19,7 @@ export class UsersController {
   @UseGuards(JwtGuard)
   @Post('/add')
   async sentFriendRequest(
-    @Body() addFriendDto: AddFriendDto
+    @Body() addFriendDto: { senderId: string, receiverEmail: string }
   ) {
 
     await this.userService.checkUserInFriends(addFriendDto);
@@ -31,21 +32,44 @@ export class UsersController {
   }
 
   @UseGuards(JwtGuard)
-  @Get('friend-requests')
-  async getFriendRequests(
+  @Get('incoming-friend-requests')
+  async getIncomingFriendRequests(
     @Body() body
   ) {
-    const friendRequests = await this.userService.getAllFriendsRequests(body.userId);
-    return friendRequests;
+    try {
+      const incomigFriendRequests = await this.userService.getAllIncomingFriendsRequests(body.userId);
+      return incomigFriendRequests;
+    }catch (e){
+      return  {
+        Msg: e.message
+      }
+    }
+
   }
+
+  @UseGuards(JwtGuard)
+  @Get('out-coming-friend-requests')
+  async getOutComingFriendRequests(
+    @Body() body
+  ) {
+    try{
+      const friendRequests = await this.userService.getAllOutComingFriendsRequests(body.userId);
+      return friendRequests;
+    }catch (e){
+      return {
+        Msg: e.message
+      }
+    }
+  }
+
 
   @UseGuards(JwtGuard)
   @Post('/accept-friend')
   async acceptFriend(
-    @Body() body: AddFriendDto
+    @Body() body: CheckUserDto
   ) {
     await this.userService.checkUserInFriends(body);
-    await this.userService.acceptFriend(body.senderId, body.receiverId);
+    await this.userService.acceptFriend(body.senderId, body.receiverEmail);
     return {
       Msg: 'Successfully added!'
     };
@@ -88,6 +112,7 @@ export class UsersController {
         Msg: 'New image successfully uploaded!'
       };
     } catch (e) {
+      console.log('Error in set new photo');
       console.log(e);
     }
 

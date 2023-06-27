@@ -1,52 +1,46 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { LoginUserDto } from './dto/login-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { LoginGuard } from './guards/login.guard';
-import { RegistrationGuard } from './guards/registration.guard';
-import { RefreshJwtGuard } from './guards/refreshJwt.guard';
-import { ForgotPasswordDto } from './dto/forgotPassword.dto';
-import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { AppError } from '../utils/appError';
+import { AuthService } from './auth.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { GoogleAuthGuard } from './guards/googleAuth.guard';
+import { LoginGuard } from './guards/login.guard';
+import { RefreshJwtGuard } from './guards/refreshJwt.guard';
+import { RegistrationGuard } from './guards/registration.guard';
 
 @Controller('auth')
 export class AuthController {
-
   constructor(private authService: AuthService, private usersService: UsersService) {
   }
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
   async handleGoogleLogin() {
-
   }
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleRedirect(
-    @Body() body,
-    @Res() res
-  ) {
-    res.redirect(`http://localhost:3000/dashboard?access_token=${res.req.user.access_token}`);
+  async handleGoogleRedirect() {
   }
 
   @UseGuards(LoginGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async loginUser(
-    @Body() loginUserDto: LoginUserDto
-  ) {
+  async loginUser(@Body() loginUserDto: LoginUserDto) {
     const user = await this.usersService.login(loginUserDto);
     const access = await this.authService.generateAccessToken(user);
     const refresh = await this.authService.generateRefreshToken(user._id as unknown as string);
 
     return {
-      ...access, ...refresh, user: {
+      ...access,
+      ...refresh,
+      user: {
         name: user.name,
-        _id: user._id,
+        id: user._id,
         email: user.email,
         image: user.image
       }
@@ -55,21 +49,23 @@ export class AuthController {
 
   @UseGuards(RegistrationGuard)
   @Post('registration')
-  async registerUser(
-    @Body() createUserDto: CreateUserDto
-  ) {
-    await this.usersService.registration(createUserDto);
+  async registerUser(@Body() createUserDto: CreateUserDto) {
+    try {
+      await this.usersService.registration(createUserDto);
 
-    return {
-      msg: 'User successfully created!'
-    };
+      return {
+        Msg: 'User successfully created!'
+      };
+    } catch (e) {
+      return {
+        Msg: e.message
+      };
+    }
   }
 
   @UseGuards(RefreshJwtGuard)
   @Post('refresh')
-  async refreshToken(
-    @Body() refreshTokenDto: RefreshTokenDto
-  ) {
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     const validToken = await this.authService.verifyToken(refreshTokenDto.refresh_token);
     const user = await this.usersService.findOneUser(refreshTokenDto.email);
     const access = await this.authService.generateAccessToken(user);
@@ -86,9 +82,7 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  async forgotPassword(
-    @Body() forgotPasswordDto: ForgotPasswordDto
-  ) {
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     await this.authService.forgotPassword(forgotPasswordDto);
     return {
       Msg: 'Reset url sent to your email!'
@@ -96,41 +90,41 @@ export class AuthController {
   }
 
   @Post('/reset')
-  async resetUserPassword(
-    @Body() resetPasswordDto: ResetPasswordDto
-  ) {
+  async resetUserPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     try {
       await this.authService.resetPassword(resetPasswordDto);
       return {
         Msg: 'Password reset!'
       };
     } catch (e) {
-      throw  new HttpException(
+      throw new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
           error: e.message
         },
         HttpStatus.FORBIDDEN,
-        { cause: e });
+        { cause: e }
+      );
     }
   }
 
   @Post('/user')
-  async getUserByToken(
-    @Body() { token }: { token: string }
-  ) {
-
+  async getUserByToken(@Body() { email }: { email: string }) {
     try {
-      const user = await this.authService.getUserByTokenData(token);
+      const user = await this.usersService.findOneUser(email);
+      const { access_token } = await this.authService.generateAccessToken(user);
+      const { refresh_token } = await this.authService.generateRefreshToken(String(user._id));
       return {
         id: user._id,
         name: user.name,
         email: user.email,
         image: user.image,
-        friends: user.friends
+        friends: user.friends,
+        access_token: access_token,
+        refresh_token: refresh_token
       };
     } catch (e) {
-      throw  new AppError(e.message, '400');
+      throw new AppError(e.message, '400');
     }
   }
 }

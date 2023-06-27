@@ -16,6 +16,9 @@ import * as bcrypt from 'bcrypt';
           const schema = UserSchema;
           schema.pre('save', async function(next) {
             if (!this.password) next();
+            if (!this.friends) {
+              this.friends = [];
+            }
             this.password = await bcrypt.hash(this.password, 12);
             this.confirmPassword = undefined;
           });
