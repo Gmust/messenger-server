@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   async validateUser(email: string): Promise<User | null> {
-    const user = await this.usersService.findOneUser(email);
+    const user = await this.usersService.findOneUserByEmail(email);
     if (!user) {
       console.log('here')
       throw  new AppError('There is  no user with such email', 400);
@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   async validateUserForGoogle({ name, email, image }: UserDetails): Promise<User | null> {
-    const user = await this.usersService.findOneUser(email);
+    const user = await this.usersService.findOneUserByEmail(email);
     if (user) return user;
     const newUser = await this.usersService.createUser({ email, name, image });
     return newUser.save({ validateBeforeSave: false });
@@ -65,11 +65,11 @@ export class AuthService {
 
   async getUserByTokenData(token: string) {
     const parsedTokenData = await this.parseJwt(token);
-    return this.usersService.findOneUser(parsedTokenData.user.email);
+    return this.usersService.findOneUserByEmail(parsedTokenData.user.email);
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    const user = await this.usersService.findOneUser(forgotPasswordDto.userEmail);
+    const user = await this.usersService.findOneUserByEmail(forgotPasswordDto.userEmail);
 
     if (!user) {
       throw new AppError('There isn`t user with such email!', 404);

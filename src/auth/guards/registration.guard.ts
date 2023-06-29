@@ -24,7 +24,7 @@ export class RegistrationGuard implements CanActivate {
       throw new AppError('Provide all data', 400);
     }
 
-    const user = await this.userService.findOneUser(email);
+    const user = await this.userService.findOneUserByEmail(email);
 
     if (user) {
       throw  new UnauthorizedException(`User with this email:${email} exists`);

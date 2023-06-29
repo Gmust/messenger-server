@@ -19,7 +19,7 @@ export class LoginGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const { email, password } = request.body;
-    const user = await this.userService.findOneUser(email);
+    const user = await this.userService.findOneUserByEmail(email);
 
     if (!user) {
       throw  new UnauthorizedException(`Invalid email or password!`);

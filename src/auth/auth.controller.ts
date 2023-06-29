@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+
 import { UsersService } from '../users/users.service';
 import { AppError } from '../utils/appError';
 import { AuthService } from './auth.service';
@@ -14,18 +15,15 @@ import { RegistrationGuard } from './guards/registration.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private usersService: UsersService) {
-  }
+  constructor(private authService: AuthService, private usersService: UsersService) {}
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleLogin() {
-  }
+  async handleGoogleLogin() {}
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleRedirect() {
-  }
+  async handleGoogleRedirect() {}
 
   @UseGuards(LoginGuard)
   @Post('login')
@@ -67,7 +65,7 @@ export class AuthController {
   @Post('refresh')
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     const validToken = await this.authService.verifyToken(refreshTokenDto.refresh_token);
-    const user = await this.usersService.findOneUser(refreshTokenDto.email);
+    const user = await this.usersService.findOneUserByEmail(refreshTokenDto.email);
     const access = await this.authService.generateAccessToken(user);
     if (validToken.error) {
       if (validToken.error === 'jwt expired') {
@@ -111,7 +109,7 @@ export class AuthController {
   @Post('/user')
   async getUserByToken(@Body() { email }: { email: string }) {
     try {
-      const user = await this.usersService.findOneUser(email);
+      const user = await this.usersService.findOneUserByEmail(email);
       const { access_token } = await this.authService.generateAccessToken(user);
       const { refresh_token } = await this.authService.generateRefreshToken(String(user._id));
       return {

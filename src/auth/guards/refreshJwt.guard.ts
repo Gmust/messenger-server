@@ -24,7 +24,7 @@ export class RefreshJwtGuard implements CanActivate {
       throw  new UnauthorizedException('Field email is required');
     }
 
-    const user = await this.usersService.findOneUser(email);
+    const user = await this.usersService.findOneUserByEmail(email);
 
     if (!user) {
       throw  new UnauthorizedException('User is not exist');

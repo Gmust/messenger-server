@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MongooseConfigService } from './config/MongooseConfigService';
-import configuration from './config/configuration';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
+
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import configuration from './config/configuration';
+import { MongooseConfigService } from './config/MongooseConfigService';
+import { EmailModule } from './email/email.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { join } from 'path';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration],
+      load: [configuration]
     }),
     MailerModule.forRoot({
       transport: {
@@ -30,12 +32,12 @@ import { join } from 'path';
       }
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(__dirname, '..', 'uploads')
     }),
     UsersModule,
     AuthModule,
-    EmailModule
+    EmailModule,
+    ChatModule
   ]
 })
-export class AppModule {
-}
+export class AppModule {}

@@ -1,11 +1,12 @@
-import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '../schemas/user.schema';
-import { Friend_Requests, FriendRequestsSchema } from '../schemas/friendRequests.schema';
-import { UsersController } from './users.controller';
-import { AuthModule } from '../auth/auth.module';
 import * as bcrypt from 'bcrypt';
+
+import { AuthModule } from '../auth/auth.module';
+import { Friend_Requests, FriendRequestsSchema } from '../schemas/friendRequests.schema';
+import { User, UserSchema } from '../schemas/user.schema';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import * as bcrypt from 'bcrypt';
         name: User.name,
         useFactory: () => {
           const schema = UserSchema;
-          schema.pre('save', async function(next) {
+          schema.pre('save', async function (next) {
             if (!this.password) next();
             if (!this.friends) {
               this.friends = [];
@@ -23,7 +24,6 @@ import * as bcrypt from 'bcrypt';
             this.confirmPassword = undefined;
           });
 
-
           return schema;
         }
       },
@@ -31,8 +31,9 @@ import * as bcrypt from 'bcrypt';
         name: Friend_Requests.name,
         useFactory: () => {
           const schema = FriendRequestsSchema;
-          schema.pre('find', async function() {
+          schema.pre('find', async function () {
             this.populate('senderId', '_id email name image');
+            this.populate('receiverId', '_id email name image');
           });
           return schema;
         }
@@ -42,11 +43,10 @@ import * as bcrypt from 'bcrypt';
       { schema: UserSchema, name: User.name },
       { schema: FriendRequestsSchema, name: Friend_Requests.name }
     ]),
-    AuthModule
+    forwardRef(() => AuthModule)
   ],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService]
 })
-export class UsersModule {
-}
+export class UsersModule {}

@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { config } from 'dotenv';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import * as process from 'process';
+
+import { AppModule } from './app.module';
 
 config();
 
@@ -13,7 +14,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.enableCors({
       credentials: true,
-      origin: ['http://localhost:3000'],
+      origin: ['http://localhost:3000']
     });
     app.use(
       session({
