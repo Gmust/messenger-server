@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 
 import { AuthModule } from '../auth/auth.module';
+import { ChatModule } from '../chat/chat.module';
+import { ChatService } from '../chat/chat.service';
 import { Friend_Requests, FriendRequestsSchema } from '../schemas/friendRequests.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { UsersController } from './users.controller';
@@ -43,7 +45,8 @@ import { UsersService } from './users.service';
       { schema: UserSchema, name: User.name },
       { schema: FriendRequestsSchema, name: Friend_Requests.name }
     ]),
-    forwardRef(() => AuthModule)
+    forwardRef(() => AuthModule),
+    forwardRef(() => ChatModule)
   ],
   controllers: [UsersController],
   providers: [UsersService],

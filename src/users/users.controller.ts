@@ -5,14 +5,14 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 import { JwtGuard } from '../auth/guards/jwt.guard';
+import { ChatService } from '../chat/chat.service';
 import { AddFriendDto } from './dto/addFriend.dto';
 import { UsersService } from './users.service';
 
-export const storage = {};
-
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UsersService) {}
+  constructor(private userService: UsersService, private chatService: ChatService) {
+  }
 
   @UseGuards(JwtGuard)
   @Post('/add')
@@ -56,6 +56,7 @@ export class UsersController {
   @Post('/accept-friend')
   async acceptFriend(@Body() body: AddFriendDto) {
     await this.userService.acceptFriend(body.senderId, body.receiverId);
+    await this.chatService.createChat([body.senderId, body.receiverId]);
     return {
       Msg: 'Successfully added!'
     };

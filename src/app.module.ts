@@ -31,13 +31,13 @@ import { UsersModule } from './users/users.module';
         }
       }
     }),
+    AuthModule,
+    EmailModule,
+    ChatModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads')
     }),
-    UsersModule,
-    AuthModule,
-    EmailModule,
-    ChatModule
+    UsersModule
   ]
 })
 export class AppModule {}
