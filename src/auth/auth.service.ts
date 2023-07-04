@@ -1,30 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as process from 'process';
-import { UsersService } from '../users/users.service';
-import { User } from '../schemas/user.schema';
-import { ForgotPasswordDto } from './dto/forgotPassword.dto';
-import { AppError } from '../utils/appError';
+
 import { EmailService } from '../email/email.service';
-import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { User } from '../schemas/user.schema';
 import { UserDetails } from '../types/user';
+import { UsersService } from '../users/users.service';
+import { AppError } from '../utils/appError';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
-
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-    private emailService: EmailService
-  ) {
+  constructor(private usersService: UsersService, private jwtService: JwtService, private emailService: EmailService) {
   }
 
   async validateUser(email: string): Promise<User | null> {
     const user = await this.usersService.findOneUserByEmail(email);
     if (!user) {
-      console.log('here')
-      throw  new AppError('There is  no user with such email', 400);
-    };
+      throw new AppError('There is  no user with such email', 400);
+    }
     return user;
   }
 
@@ -43,10 +38,13 @@ export class AuthService {
 
   async generateRefreshToken(userId: string) {
     return {
-      refresh_token: this.jwtService.sign({ userId }, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '7d'
-      })
+      refresh_token: this.jwtService.sign(
+        { userId },
+        {
+          secret: process.env.JWT_SECRET,
+          expiresIn: '7d'
+        }
+      )
     };
   }
 
@@ -82,7 +80,6 @@ export class AuthService {
     user.save({ validateBeforeSave: false });
 
     try {
-
       const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
 
       await this.emailService.sendEmail({
@@ -93,7 +90,6 @@ export class AuthService {
         subject: 'test',
         url: resetUrl
       });
-
     } catch (e) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
@@ -105,7 +101,7 @@ export class AuthService {
     const user = await this.getUserByTokenData(resetPasswordDto.token);
 
     if (!user) {
-      return (new AppError('Token is invalid or has expired!', 400));
+      return new AppError('Token is invalid or has expired!', 400);
     }
 
     user.password = resetPasswordDto.newPassword;

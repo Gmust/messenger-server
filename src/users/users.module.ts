@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
-import { ChatService } from '../chat/chat.service';
 import { Friend_Requests, FriendRequestsSchema } from '../schemas/friendRequests.schema';
 import { User, UserSchema } from '../schemas/user.schema';
 import { UsersController } from './users.controller';
@@ -20,12 +19,14 @@ import { UsersService } from './users.service';
           schema.pre('save', async function (next) {
             if (!this.password) next();
             if (!this.friends) {
-              this.friends = [];
+              this.friends = [null];
             }
             this.password = await bcrypt.hash(this.password, 12);
             this.confirmPassword = undefined;
           });
-
+          schema.pre('findOne', async function () {
+            this.populate('friends', '_id, email name image');
+          });
           return schema;
         }
       },

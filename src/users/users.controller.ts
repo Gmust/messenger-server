@@ -17,6 +17,8 @@ export class UsersController {
   @UseGuards(JwtGuard)
   @Post('/add')
   async sentFriendRequest(@Body() addFriendDto: { senderId: string; receiverEmail: string }) {
+    await this.userService.checkIsUser(addFriendDto);
+    await this.userService.checkIsUserExists(addFriendDto);
     await this.userService.checkUserInFriends(addFriendDto);
     await this.userService.checkUserIsAlreadyHasRequest(addFriendDto);
     await this.userService.addFriend(addFriendDto);

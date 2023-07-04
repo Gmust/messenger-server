@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -60,7 +60,9 @@ export class UsersService {
   }
 
   async createUser({ name, email, image }: UserDetails) {
-    return new this.userModel({ name: name, email: email, image: image });
+    return new this.userModel({ name: name, email: email, image: image, friends: [] }).save({
+      validateBeforeSave: false
+    });
   }
 
   async addFriend(addFriendDto: { senderId: string; receiverEmail: string }): Promise<Friend_Requests> {
@@ -76,17 +78,39 @@ export class UsersService {
     return newFriendRequest.save();
   }
 
+  async checkIsUserExists(checkUserDto: CheckUserDto) {
+    const receiver = await this.userModel.findOne({ email: checkUserDto.receiverEmail });
+    if (!receiver) {
+      throw new HttpException('This email is not using that service', HttpStatus.FORBIDDEN);
+    }
+    return true;
+  }
+
+  async checkIsUser(checkUserDto: CheckUserDto) {
+    const user = await this.userModel.findOne({ _id: checkUserDto.senderId });
+    if (user.email === checkUserDto.receiverEmail) {
+      throw new HttpException('You can`t add yourself', HttpStatus.FORBIDDEN);
+    }
+    return true;
+  }
+
   async checkUserInFriends(checkUserDto: CheckUserDto) {
     const sender = await this.userModel.findOne({ _id: checkUserDto.senderId });
     const receiver = await this.userModel.findOne({ email: checkUserDto.receiverEmail });
 
-    if (sender.friends.includes(receiver._id) || receiver.friends.includes(checkUserDto.senderId)) {
-      const doc = await this.friendRequest.findOne({});
+    console.log('sender', sender);
+    console.log('receiver', receiver);
+
+    if (!sender.friends.length || !receiver.friends.length) {
+      return true;
+    }
+
+    if (sender.friends.includes(receiver._id.toString()) || receiver.friends.includes(checkUserDto.senderId)) {
       await this.friendRequest.findOneAndDelete({
         receiverId: receiver._id,
         senderId: checkUserDto.senderId
       });
-      throw new AppError('You are already friends!', 400);
+      throw new HttpException('You are already friends!', HttpStatus.FORBIDDEN);
     }
     return true;
   }
@@ -102,7 +126,7 @@ export class UsersService {
     });
 
     if (friendRequest) {
-      throw new AppError('User already has friend request', 400);
+      throw new HttpException('User already has friend request', HttpStatus.FORBIDDEN);
     }
 
     return true;

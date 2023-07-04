@@ -1,14 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { Schema as MongooseSchema } from 'mongoose';
 import validator from 'validator';
-import * as bcrypt from 'bcrypt';
 
-export type UserDocument = User & Document
+export type UserDocument = User & Document;
 
 @Schema()
 export class User {
   _id: MongooseSchema.Types.ObjectId;
-
 
   @Prop({
     type: String,
@@ -39,14 +38,17 @@ export class User {
   @Prop({
     type: String,
     required: [true, 'Field password is required!'],
-    validate: [(val) => {
-      validator.isStrongPassword(val, {
-        minLength: 6,
-        minNumbers: 1,
-        minUppercase: 1,
-        minLowercase: 1
-      });
-    }, '']
+    validate: [
+      (val) => {
+        validator.isStrongPassword(val, {
+          minLength: 6,
+          minNumbers: 1,
+          minUppercase: 1,
+          minLowercase: 1
+        });
+      },
+      ''
+    ]
   })
   password: string;
 
@@ -94,14 +96,13 @@ export class User {
   createPasswordResetToken: Function;
 }
 
-
 export const UserSchema = SchemaFactory.createForClass(User);
 
 async function generateResetToken() {
   try {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash('resetToken', salt);
-    const encodedToken  = encodeURIComponent(hash)
+    const encodedToken = encodeURIComponent(hash);
     return encodedToken;
   } catch (err) {
     throw err;

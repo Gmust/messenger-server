@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 
 import { UsersService } from '../users/users.service';
 import { AppError } from '../utils/appError';
@@ -12,6 +12,7 @@ import { GoogleAuthGuard } from './guards/googleAuth.guard';
 import { LoginGuard } from './guards/login.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { RegistrationGuard } from './guards/registration.guard';
+import { UserDetails } from 'src/types/user';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +24,11 @@ export class AuthController {
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleRedirect() {}
+  async handleGoogleRedirect(@Body() body: any, @Res() res: any) {
+    const { user } = res.req;
+    // Redirect or handle the user object as needed
+    res.redirect(`http://localhost:3000/dashboard?email=${user.user.email}`);
+  }
 
   @UseGuards(LoginGuard)
   @Post('login')
@@ -106,8 +111,8 @@ export class AuthController {
     }
   }
 
-  @Post('/user')
-  async getUserByToken(@Body() { email }: { email: string }) {
+  @Get('/user')
+  async getUserByEmail(@Body() { email }: { email: string }) {
     try {
       const user = await this.usersService.findOneUserByEmail(email);
       const { access_token } = await this.authService.generateAccessToken(user);
@@ -124,5 +129,35 @@ export class AuthController {
     } catch (e) {
       throw new AppError(e.message, '400');
     }
+  }
+
+  @Post('/login-google')
+  async loginGoogle(@Body() body: UserDetails) {
+    const user = await this.usersService.findOneUserByEmail(body.email);
+    if (!user) {
+      const newUser = await this.usersService.createUser({ email: body.email, name: body.name, image: body.image });
+      const { access_token } = await this.authService.generateAccessToken(newUser);
+      const { refresh_token } = await this.authService.generateRefreshToken(String(newUser._id));
+      return {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        image: newUser.image,
+        friends: newUser.friends,
+        access_token: access_token,
+        refresh_token: refresh_token
+      };
+    }
+    const { access_token } = await this.authService.generateAccessToken(user);
+    const { refresh_token } = await this.authService.generateRefreshToken(String(user._id));
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      friends: user.friends,
+      access_token: access_token,
+      refresh_token: refresh_token
+    };
   }
 }
