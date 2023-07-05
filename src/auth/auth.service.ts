@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import * as process from 'process';
 
 import { EmailService } from '../email/email.service';
+import { Account, AccountDocument } from '../schemas/accounts.schema';
 import { User } from '../schemas/user.schema';
 import { UserDetails } from '../types/user';
 import { UsersService } from '../users/users.service';
@@ -12,7 +15,12 @@ import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService, private jwtService: JwtService, private emailService: EmailService) {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+    @InjectModel(Account.name) private accountModel: Model<AccountDocument>
+  ) {
   }
 
   async validateUser(email: string): Promise<User | null> {
@@ -28,6 +36,19 @@ export class AuthService {
     if (user) return user;
     const newUser = await this.usersService.createUser({ email, name, image });
     return newUser.save({ validateBeforeSave: false });
+  }
+
+  async validateGoogleAccount(account: Account): Promise<Account | null> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const accountInDb = await this.accountModel.findOne({ _id: account._id });
+
+    if (!accountInDb) {
+      const newAccount = await new this.accountModel(account).save();
+      return newAccount;
+    }
+
+    return accountInDb;
   }
 
   async generateAccessToken(user: User) {

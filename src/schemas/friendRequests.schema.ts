@@ -1,14 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-export type FriendRequestsDocument = Friend_Requests & Document
+export type FriendRequestsDocument = Friend_Requests & Document;
 
 @Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 })
 export class Friend_Requests {
-
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',

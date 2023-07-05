@@ -1,6 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
+import { Account, AccountSchema } from 'src/schemas/accounts.schema';
 
 import { jwtConfig } from '../config/jwt.config';
 import { EmailModule } from '../email/email.module';
@@ -15,10 +17,12 @@ import { SessionSerializer } from './utils/Serializer';
     forwardRef(() => UsersModule),
     JwtModule.registerAsync(jwtConfig),
     EmailModule,
-    PassportModule.register({ session: true })
+    PassportModule.register({ session: true }),
+    MongooseModule.forFeature([{ schema: AccountSchema, name: Account.name }])
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, SessionSerializer],
   exports: [AuthService]
 })
-export class AuthModule {}
+export class AuthModule {
+}

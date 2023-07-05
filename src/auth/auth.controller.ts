@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { UserDetails } from 'src/types/user';
 
 import { UsersService } from '../users/users.service';
-import { AppError } from '../utils/appError';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
@@ -12,15 +12,17 @@ import { GoogleAuthGuard } from './guards/googleAuth.guard';
 import { LoginGuard } from './guards/login.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { RegistrationGuard } from './guards/registration.guard';
-import { UserDetails } from 'src/types/user';
+import { Account } from '../schemas/accounts.schema';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private usersService: UsersService) {}
+  constructor(private authService: AuthService, private usersService: UsersService) {
+  }
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleLogin() {}
+  async handleGoogleLogin() {
+  }
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
@@ -60,9 +62,14 @@ export class AuthController {
         Msg: 'User successfully created!'
       };
     } catch (e) {
-      return {
-        Msg: e.message
-      };
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e }
+      );
     }
   }
 
@@ -127,7 +134,14 @@ export class AuthController {
         refresh_token: refresh_token
       };
     } catch (e) {
-      throw new AppError(e.message, '400');
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e }
+      );
     }
   }
 
@@ -159,5 +173,23 @@ export class AuthController {
       access_token: access_token,
       refresh_token: refresh_token
     };
+  }
+
+  @Post('/account-google')
+  async accountGoogle(
+    @Body() { account }: { account: Account }
+  ) {
+    try {
+      return await this.authService.validateGoogleAccount(account);
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e }
+      );
+    }
   }
 }
