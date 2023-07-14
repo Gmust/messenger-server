@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { UserDetails } from 'src/types/user';
 
 import { UsersService } from '../users/users.service';
@@ -34,22 +34,32 @@ export class AuthController {
 
   @UseGuards(LoginGuard)
   @Post('login')
-  @HttpCode(HttpStatus.OK)
   async loginUser(@Body() loginUserDto: LoginUserDto) {
-    const user = await this.usersService.login(loginUserDto);
-    const access = await this.authService.generateAccessToken(user);
-    const refresh = await this.authService.generateRefreshToken(user._id as unknown as string);
+    try {
+      const user = await this.usersService.login(loginUserDto);
+      const access = await this.authService.generateAccessToken(user);
+      const refresh = await this.authService.generateRefreshToken(user._id as unknown as string);
 
-    return {
-      ...access,
-      ...refresh,
-      user: {
-        name: user.name,
-        id: user._id,
-        email: user.email,
-        image: user.image
-      }
-    };
+      return {
+        ...access,
+        ...refresh,
+        user: {
+          name: user.name,
+          id: user._id,
+          email: user.email,
+          image: user.image
+        }
+      };
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: e.message
+        },
+        HttpStatus.UNAUTHORIZED,
+        { cause: e }
+      );
+    }
   }
 
   @UseGuards(RegistrationGuard)
@@ -176,9 +186,7 @@ export class AuthController {
   }
 
   @Post('/account-google')
-  async accountGoogle(
-    @Body() { account }: { account: Account }
-  ) {
+  async accountGoogle(@Body() { account }: { account: Account }) {
     try {
       return await this.authService.validateGoogleAccount(account);
     } catch (e) {

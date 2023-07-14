@@ -5,21 +5,23 @@ import { Message, MessageSchema } from './message.schema';
 
 export type ChatDocument = Chat & Document;
 
-@Schema()
+@Schema({
+  toObject: {
+    virtuals: true
+  }
+})
 export class Chat {
-  @Prop([
-    {
-      type: MongooseSchema.Types.ObjectId,
-      ref: 'User'
-    }
-  ])
-  participants: string[];
-
   @Prop({
-    type: [MessageSchema],
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }],
     default: []
   })
-  messages: Message[];
+  participants: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Message' }],
+    default: []
+  })
+  messages: MongooseSchema.Types.ObjectId[];
 }
 
 export const ChatSchema = SchemaFactory.createForClass(Chat);

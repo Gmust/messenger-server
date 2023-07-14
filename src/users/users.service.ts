@@ -27,6 +27,7 @@ export class UsersService {
     });
 
     if (!user) {
+
       return null;
     }
 
@@ -98,8 +99,7 @@ export class UsersService {
     const sender = await this.userModel.findOne({ _id: checkUserDto.senderId });
     const receiver = await this.userModel.findOne({ email: checkUserDto.receiverEmail });
 
-    console.log('sender', sender);
-    console.log('receiver', receiver);
+
 
     if (!sender.friends.length || !receiver.friends.length) {
       return true;

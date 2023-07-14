@@ -1,4 +1,11 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthService } from '../auth.service';
 import * as  bcrypt from 'bcrypt';
@@ -22,7 +29,7 @@ export class LoginGuard implements CanActivate {
     const user = await this.userService.findOneUserByEmail(email);
 
     if (!user) {
-      throw  new UnauthorizedException(`Invalid email or password!`);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
 
     const dbPassword = user.password;
@@ -30,7 +37,8 @@ export class LoginGuard implements CanActivate {
     const match = await bcrypt.compare(password, dbPassword);
 
     if (!match) {
-      throw  new UnauthorizedException(`Invalid email or password!`);
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+
     }
 
     return true;

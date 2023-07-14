@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
@@ -57,11 +69,22 @@ export class UsersController {
   @UseGuards(JwtGuard)
   @Post('/accept-friend')
   async acceptFriend(@Body() body: AddFriendDto) {
-    await this.userService.acceptFriend(body.senderId, body.receiverId);
-    await this.chatService.createChat([body.senderId, body.receiverId]);
-    return {
-      Msg: 'Successfully added!'
-    };
+    try {
+      await this.userService.acceptFriend(body.senderId, body.receiverId);
+      await this.chatService.createChat([body.senderId, body.receiverId]);
+      return {
+        Msg: 'Successfully added!'
+      };
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e }
+      );
+    }
   }
 
   @UseGuards(JwtGuard)
