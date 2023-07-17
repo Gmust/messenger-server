@@ -66,10 +66,10 @@ export class User {
   confirmPassword;
 
   @Prop({
-    type: Array,
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }],
     default: []
   })
-  friends;
+  friends: MongooseSchema.Types.ObjectId[];
 
   @Prop({
     type: String

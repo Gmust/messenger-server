@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -9,13 +9,15 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { UserDetails } from '../types/user';
 import { AppError } from '../utils/appError';
 import { CheckUserDto } from './dto/checkUser.dto';
+import { Chat, ChatDocument } from '../schemas/chat.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>
-  ) {}
+    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>,
+  ) {
+  }
 
   async login(loginUserDto: LoginUserDto): Promise<User | null> {
     if (!loginUserDto.email || !loginUserDto.email) {
@@ -27,7 +29,6 @@ export class UsersService {
     });
 
     if (!user) {
-
       return null;
     }
 
@@ -99,13 +100,13 @@ export class UsersService {
     const sender = await this.userModel.findOne({ _id: checkUserDto.senderId });
     const receiver = await this.userModel.findOne({ email: checkUserDto.receiverEmail });
 
-
-
     if (!sender.friends.length || !receiver.friends.length) {
       return true;
     }
 
-    if (sender.friends.includes(receiver._id.toString()) || receiver.friends.includes(checkUserDto.senderId)) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (sender.friends.includes(receiver._id) || receiver.friends.includes(checkUserDto.senderId)) {
       await this.friendRequest.findOneAndDelete({
         receiverId: receiver._id,
         senderId: checkUserDto.senderId
@@ -184,5 +185,47 @@ export class UsersService {
 
   async declineFriendRequest(senderId: string, receiverId: string) {
     await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+  }
+
+  async deleteFromFriends(senderId: string, receiverId: string) {
+    if (!senderId || !receiverId) {
+      throw new UnauthorizedException('Please, provide all data', {});
+    }
+
+    if (senderId === receiverId) {
+      throw new UnauthorizedException('Please, provide different users', {});
+    }
+
+    console.log(senderId, receiverId);
+
+    const sender = await this.userModel
+      .findOneAndUpdate(
+        { _id: senderId },
+        { $pull: { friends: receiverId } },
+        { new: true } // To return the updated document
+      )
+      .exec();
+
+    const receiver = await this.userModel
+      .findOneAndUpdate(
+        { _id: receiverId },
+        { $pull: { friends: senderId } },
+        { new: true } // To return the updated document
+      )
+      .exec();
+
+    console.log(sender);
+    console.log(receiver);
+    /*
+    const sender = await this.userModel.findOne({ _id: senderId });
+    const receiver = await this.userModel.findOne({ _id: receiverId });
+
+    sender.friends.remove(receiver._id);
+    receiver.friends.remove(sender._id);
+
+    sender.save({ validateBeforeSave: false });
+    receiver.save({ validateBeforeSave: false });*/
+
+    return null;
   }
 }

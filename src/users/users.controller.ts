@@ -41,6 +41,28 @@ export class UsersController {
   }
 
   @UseGuards(JwtGuard)
+  @Delete('/remove')
+  async removeFromFriends(@Body() removeFriendDto: { senderId: string; receiverId: string }) {
+    try {
+      await this.userService.deleteFromFriends(removeFriendDto.senderId, removeFriendDto.receiverId);
+      await this.chatService.deleteChat(removeFriendDto.senderId, removeFriendDto.receiverId);
+
+      return {
+        Msg: 'Successfully deleted!'
+      };
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.message
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: e }
+      );
+    }
+  }
+
+  @UseGuards(JwtGuard)
   @Get('incoming-friend-requests')
   async getIncomingFriendRequests(@Body() body) {
     try {
