@@ -13,7 +13,10 @@ enum MessageType {
 
 export type MessageDocument = Message & Document;
 
-@Schema()
+@Schema({
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+})
 export class Message {
   @Prop({
     type: MongooseSchema.Types.ObjectId,

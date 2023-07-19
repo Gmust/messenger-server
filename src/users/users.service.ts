@@ -4,20 +4,23 @@ import { Model } from 'mongoose';
 
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { LoginUserDto } from '../auth/dto/login-user.dto';
+import { pusherServer } from '../config/pusher';
 import { Friend_Requests, FriendRequestsDocument } from '../schemas/friendRequests.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { UserDetails } from '../types/user';
 import { AppError } from '../utils/appError';
+import { toPusherKey } from '../utils/toPusherKey';
 import { CheckUserDto } from './dto/checkUser.dto';
-import { Chat, ChatDocument } from '../schemas/chat.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>,
+    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>
   ) {
   }
+
+  private pusher = pusherServer;
 
   async login(loginUserDto: LoginUserDto): Promise<User | null> {
     if (!loginUserDto.email || !loginUserDto.email) {
@@ -72,11 +75,22 @@ export class UsersService {
       throw new AppError('Both sender and receiver must be registered', 400);
     }
     const receiver = await this.userModel.findOne({ email: addFriendDto.receiverEmail });
-
+    const sender = await this.userModel.findOne({ _id: addFriendDto.senderId });
     if (!receiver) {
       throw new AppError('There is no user with such email', 400);
     }
+
     const newFriendRequest = new this.friendRequest({ senderId: addFriendDto.senderId, receiverId: receiver._id });
+
+    await pusherServer.trigger(
+      toPusherKey(`user:${receiver._id}:incoming-friend-requests`),
+      'incoming-friend-requests',
+      {
+        _id: newFriendRequest._id,
+        senderId: sender,
+        receiverId: receiver
+      }
+    );
     return newFriendRequest.save();
   }
 
@@ -128,6 +142,7 @@ export class UsersService {
 
     if (friendRequest) {
       throw new HttpException('User already has friend request', HttpStatus.FORBIDDEN);
+      return false;
     }
 
     return true;
@@ -180,11 +195,18 @@ export class UsersService {
       throw new AppError('Friend is not found!', 400);
     }
 
+    await Promise.all([
+      pusherServer.trigger(toPusherKey(`user:${receiverId}:friends`), 'new-friend', user),
+      pusherServer.trigger(toPusherKey(`user:${senderId}:friends`), 'new-friend', friend)
+    ]);
+
     await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
   }
 
   async declineFriendRequest(senderId: string, receiverId: string) {
-    await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+    const sender = await this.userModel.findById(senderId);
+    const req = await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
+    await pusherServer.trigger(toPusherKey(`user:${senderId}:requests`), 'deny-request', sender);
   }
 
   async deleteFromFriends(senderId: string, receiverId: string) {
