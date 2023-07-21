@@ -238,16 +238,6 @@ export class UsersService {
 
     console.log(sender);
     console.log(receiver);
-    /*
-    const sender = await this.userModel.findOne({ _id: senderId });
-    const receiver = await this.userModel.findOne({ _id: receiverId });
-
-    sender.friends.remove(receiver._id);
-    receiver.friends.remove(sender._id);
-
-    sender.save({ validateBeforeSave: false });
-    receiver.save({ validateBeforeSave: false });*/
-
     return null;
   }
 }

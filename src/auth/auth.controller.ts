@@ -1,6 +1,8 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { UserDetails } from 'src/types/user';
 
+import { Account } from '../schemas/accounts.schema';
+import { User } from '../schemas/user.schema';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,17 +14,15 @@ import { GoogleAuthGuard } from './guards/googleAuth.guard';
 import { LoginGuard } from './guards/login.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { RegistrationGuard } from './guards/registration.guard';
-import { Account } from '../schemas/accounts.schema';
+import { JwtGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private usersService: UsersService) {
-  }
+  constructor(private authService: AuthService, private usersService: UsersService) {}
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleLogin() {
-  }
+  async handleGoogleLogin() {}
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
@@ -142,6 +142,32 @@ export class AuthController {
         friends: user.friends,
         access_token: access_token,
         refresh_token: refresh_token
+      };
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: e.message
+        },
+        HttpStatus.FORBIDDEN,
+        { cause: e }
+      );
+    }
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('user/:id')
+  async getUserById(@Param('id') id: string): Promise<Pick<User, 'email' | 'name' | '_id' | 'image' | 'friends'>> {
+    try {
+      const user = await this.usersService.findOneUserById(id);
+      const { access_token } = await this.authService.generateAccessToken(user);
+      const { refresh_token } = await this.authService.generateRefreshToken(String(user._id));
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        friends: user.friends
       };
     } catch (e) {
       throw new HttpException(
