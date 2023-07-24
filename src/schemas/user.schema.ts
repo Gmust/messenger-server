@@ -37,6 +37,14 @@ export class User {
 
   @Prop({
     type: String,
+    default: '',
+    isRequired: false,
+    maxlength: 300
+  })
+  bio;
+
+  @Prop({
+    type: String,
     required: [true, 'Field password is required!'],
     validate: [
       (val) => {
@@ -80,6 +88,7 @@ export class User {
     type: Date
   })
   resetPasswordExpires;
+
 
   @Prop({
     type: Number,

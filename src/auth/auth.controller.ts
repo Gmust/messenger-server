@@ -11,10 +11,10 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { GoogleAuthGuard } from './guards/googleAuth.guard';
+import { JwtGuard } from './guards/jwt.guard';
 import { LoginGuard } from './guards/login.guard';
 import { RefreshJwtGuard } from './guards/refreshJwt.guard';
 import { RegistrationGuard } from './guards/registration.guard';
-import { JwtGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -157,7 +157,9 @@ export class AuthController {
 
   @UseGuards(JwtGuard)
   @Get('user/:id')
-  async getUserById(@Param('id') id: string): Promise<Pick<User, 'email' | 'name' | '_id' | 'image' | 'friends'>> {
+  async getUserById(
+    @Param('id') id: string
+  ): Promise<Pick<User, 'email' | 'name' | '_id' | 'image' | 'friends' | 'bio'>> {
     try {
       const user = await this.usersService.findOneUserById(id);
       const { access_token } = await this.authService.generateAccessToken(user);
@@ -167,7 +169,8 @@ export class AuthController {
         name: user.name,
         email: user.email,
         image: user.image,
-        friends: user.friends
+        friends: user.friends,
+        bio: user.bio
       };
     } catch (e) {
       throw new HttpException(
@@ -193,6 +196,7 @@ export class AuthController {
         name: newUser.name,
         email: newUser.email,
         image: newUser.image,
+        bio: newUser.bio,
         friends: newUser.friends,
         access_token: access_token,
         refresh_token: refresh_token
@@ -205,6 +209,7 @@ export class AuthController {
       name: user.name,
       email: user.email,
       image: user.image,
+      bio: user.bio,
       friends: user.friends,
       access_token: access_token,
       refresh_token: refresh_token

@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors
@@ -150,6 +151,26 @@ export class UsersController {
     } catch (e) {
       console.log('Error in set new photo');
       console.log(e);
+    }
+  }
+
+  @UseGuards(JwtGuard)
+  @Get()
+  async getUsersByEmailOrName(@Query('email') email: string, @Query('name') name: string) {
+    try {
+      const results = await this.userService.searchForUsers(email, name);
+
+      return results;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.response.error
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: e }
+      );
     }
   }
 }

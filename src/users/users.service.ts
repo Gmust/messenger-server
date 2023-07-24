@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -211,14 +211,24 @@ export class UsersService {
 
   async deleteFromFriends(senderId: string, receiverId: string) {
     if (!senderId || !receiverId) {
-      throw new UnauthorizedException('Please, provide all data', {});
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Please provide all data'
+        },
+        HttpStatus.BAD_REQUEST
+      );
     }
 
     if (senderId === receiverId) {
-      throw new UnauthorizedException('Please, provide different users', {});
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Please provide all data'
+        },
+        HttpStatus.BAD_REQUEST
+      );
     }
-
-    console.log(senderId, receiverId);
 
     const sender = await this.userModel
       .findOneAndUpdate(
@@ -236,8 +246,26 @@ export class UsersService {
       )
       .exec();
 
-    console.log(sender);
-    console.log(receiver);
+    await pusherServer.trigger(toPusherKey(`user:${senderId}`), 'delete-from-friends', {
+      status: 'success'
+    });
+
     return null;
+  }
+
+  async searchForUsers(email?: string, name?: string) {
+    const emailRegex = email ? new RegExp(email, 'i') : undefined;
+    const nameRegex = name ? new RegExp(name, 'i') : undefined;
+
+    const filter = {};
+    if (emailRegex) {
+      filter['email'] = emailRegex;
+    }
+    if (nameRegex) {
+      filter['name'] = nameRegex;
+    }
+
+    const results = await this.userModel.find(filter);
+    return results;
   }
 }
