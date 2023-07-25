@@ -268,4 +268,14 @@ export class UsersService {
     const results = await this.userModel.find(filter);
     return results;
   }
+
+  async changeBio(userId: string, newBio: string) {
+    const user = await this.userModel.findOneAndUpdate({ _id: userId }, { bio: newBio }, { new: true });
+    return user.bio;
+  }
+
+  async changeName(userId: string, newName: string) {
+    const user = await this.userModel.findOneAndUpdate({ _id: userId }, { name: newName }, { new: true });
+    return user.name;
+  }
 }

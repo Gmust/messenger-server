@@ -155,6 +155,45 @@ export class UsersController {
   }
 
   @UseGuards(JwtGuard)
+  @Patch('/update-bio')
+  async setNewBio(@Body() { userId, newBio }: { userId: string; newBio: string }) {
+    try {
+      const bio = await this.userService.changeBio(userId, newBio);
+      return bio;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.response.error
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: e }
+      );
+    }
+  }
+
+
+  @UseGuards(JwtGuard)
+  @Patch('/update-name')
+  async setNewName(@Body() { userId, newName }: { userId: string; newName: string }) {
+    try {
+      const name = await this.userService.changeName(userId, newName);
+      return name;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.response.error
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: e }
+      );
+    }
+  }
+
+  @UseGuards(JwtGuard)
   @Get()
   async getUsersByEmailOrName(@Query('email') email: string, @Query('name') name: string) {
     try {
