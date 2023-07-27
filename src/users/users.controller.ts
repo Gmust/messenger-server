@@ -24,8 +24,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UsersService, private chatService: ChatService) {
-  }
+  constructor(private userService: UsersService, private chatService: ChatService) {}
 
   @UseGuards(JwtGuard)
   @Post('/add')
@@ -135,7 +134,14 @@ export class UsersController {
           const extension = path.parse(file.originalname).ext;
           callback(null, `${filename}${extension}`);
         }
-      })
+      }),
+      fileFilter: (req, file, callback) => {
+        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+          callback(null, true);
+        } else {
+          callback(new Error('Only JPEG and PNG files are allowed!'), false);
+        }
+      }
     })
   )
   @Patch('/photo')
@@ -172,7 +178,6 @@ export class UsersController {
       );
     }
   }
-
 
   @UseGuards(JwtGuard)
   @Patch('/update-name')
