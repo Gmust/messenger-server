@@ -8,7 +8,8 @@ enum MessageType {
   Image = 'image',
   Video = 'video',
   Audio = 'audio',
-  GeoLocation = 'geolocation'
+  GeoLocation = 'geolocation',
+  File = 'file'
 }
 
 export type MessageDocument = Message & Document;
@@ -35,7 +36,7 @@ export class Message {
   @Prop({ type: String, enum: MessageType, default: MessageType.Text })
   messageType: MessageType;
 
-  @Prop({ required: true })
+  @Prop()
   content: string;
 
   @Prop({ default: Date.now })
