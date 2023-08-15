@@ -9,7 +9,8 @@ enum MessageType {
   Video = 'video',
   Audio = 'audio',
   GeoLocation = 'geolocation',
-  File = 'file'
+  File = 'file',
+  Voice = 'voice'
 }
 
 export type MessageDocument = Message & Document;
@@ -44,6 +45,18 @@ export class Message {
 
   @Prop({ type: String, ref: 'Chat', required: true })
   chat: string;
+
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point']
+    },
+    coordinates: [Number]
+  })
+  geoLocation: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

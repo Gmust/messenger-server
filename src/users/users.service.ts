@@ -257,16 +257,29 @@ export class UsersService {
     const emailRegex = email ? new RegExp(email, 'i') : undefined;
     const nameRegex = name ? new RegExp(name, 'i') : undefined;
 
-    const filter = {};
+    if (email) {
+
+    }
+    const filterEmail = {};
+    const filterName = {};
     if (emailRegex) {
-      filter['email'] = emailRegex;
+      filterEmail['email'] = emailRegex;
     }
     if (nameRegex) {
-      filter['name'] = nameRegex;
+      filterName['name'] = nameRegex;
+    }
+    const resultsEmail = await this.userModel.find(filterEmail);
+    const resultsName = await this.userModel.find(filterName);
+
+    function mergeAndRemoveDuplicateObjects(arr1, arr2) {
+      const mergedArray = arr1.concat(arr2);
+      const uniqueArray = mergedArray.filter((obj, index, self) =>
+        index === self.findIndex((o) => o.id === obj.id)
+      );
+      return uniqueArray;
     }
 
-    const results = await this.userModel.find(filter);
-    return results;
+    return mergeAndRemoveDuplicateObjects(resultsEmail, resultsName);
   }
 
   async changeBio(userId: string, newBio: string) {

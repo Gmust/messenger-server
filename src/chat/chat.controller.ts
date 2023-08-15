@@ -63,7 +63,7 @@ export class ChatController {
         filename: (req, file, callback) => {
           const filename = Buffer.from(file.originalname, 'latin1').toString('utf8');
           const extension = path.parse(file.originalname).ext;
-          callback(null, `${filename}${extension}`);
+          callback(null, `${filename}`);
         }
       })
     })
@@ -78,13 +78,14 @@ export class ChatController {
         message.messageType === 'image' ||
         message.messageType === 'video' ||
         message.messageType === 'audio' ||
-        message.messageType === 'file'
+        message.messageType === 'file' ||
+        message.messageType === 'voice'
       ) {
         message.content = files[0].filename;
         const lastMessage = await this.chatService.createNewMessage(message, chatId);
         return lastMessage;
       }
-      if (message.messageType === 'text') {
+      if (message.messageType === 'text' || message.messageType === 'geolocation') {
         const lastMessage = await this.chatService.createNewMessage(message, chatId);
         return lastMessage;
       }
