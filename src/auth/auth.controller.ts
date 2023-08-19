@@ -1,12 +1,11 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Res, UseGuards } from '@nestjs/common';
-import { UserDetails } from 'src/types/user';
 
 import { Account } from '../schemas/accounts.schema';
 import { User } from '../schemas/user.schema';
+import { UserDetails } from '../types/user';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
@@ -22,7 +21,9 @@ export class AuthController {
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleGoogleLogin() {}
+  async handleGoogleLogin() {
+
+  }
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
@@ -102,8 +103,8 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(forgotPasswordDto);
+  async forgotPassword(@Body() { email }: { email: string }) {
+    await this.authService.forgotPassword(email);
     return {
       Msg: 'Reset url sent to your email!'
     };

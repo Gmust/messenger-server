@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+
 import { SentResetUrlDto } from './dto/sentResetUrl.dto';
 
 @Injectable()
 export class EmailService {
-
-  constructor(private readonly mailerService: MailerService) {
-
-  }
+  constructor(private readonly mailerService: MailerService) {}
 
   async sendEmail(sentResetUrlDto: SentResetUrlDto): Promise<void> {
     await this.mailerService.sendMail({
@@ -18,5 +16,4 @@ export class EmailService {
       html: sentResetUrlDto.html
     });
   }
-
 }

@@ -9,5 +9,5 @@ export class ResetPasswordDto {
   newPassword: string;
 
   @IsNotEmpty()
-  confirmNewPassword: string;
+  confirmPassword: string;
 }

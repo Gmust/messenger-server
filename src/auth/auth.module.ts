@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
-import { Account, AccountSchema } from 'src/schemas/accounts.schema';
 
 import { jwtConfig } from '../config/jwt.config';
 import { EmailModule } from '../email/email.module';
@@ -11,6 +10,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './utils/GoogleStrategy';
 import { SessionSerializer } from './utils/Serializer';
+import { Account, AccountSchema } from '../schemas/accounts.schema';
 
 @Module({
   imports: [
