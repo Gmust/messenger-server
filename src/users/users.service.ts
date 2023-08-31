@@ -81,7 +81,7 @@ export class UsersService {
 
     const newFriendRequest = new this.friendRequest({ senderId: addFriendDto.senderId, receiverId: receiver._id });
 
-    await pusherServer.trigger(
+    await this.pusher.trigger(
       toPusherKey(`user:${receiver._id}:incoming-friend-requests`),
       'incoming-friend-requests',
       {
@@ -195,8 +195,8 @@ export class UsersService {
     }
 
     await Promise.all([
-      pusherServer.trigger(toPusherKey(`user:${receiverId}:friends`), 'new-friend', user),
-      pusherServer.trigger(toPusherKey(`user:${senderId}:friends`), 'new-friend', friend)
+      this.pusher.trigger(toPusherKey(`user:${receiverId}:friends`), 'new-friend', user),
+      this.pusher.trigger(toPusherKey(`user:${senderId}:friends`), 'new-friend', friend)
     ]);
 
     await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
@@ -205,7 +205,7 @@ export class UsersService {
   async declineFriendRequest(senderId: string, receiverId: string) {
     const sender = await this.userModel.findById(senderId);
     const req = await this.friendRequest.findOneAndDelete({ receiverId: receiverId, senderId: senderId });
-    await pusherServer.trigger(toPusherKey(`user:${senderId}:requests`), 'deny-request', sender);
+    await this.pusher.trigger(toPusherKey(`user:${senderId}:requests`), 'deny-request', sender);
   }
 
   async deleteFromFriends(senderId: string, receiverId: string) {
@@ -245,7 +245,7 @@ export class UsersService {
       )
       .exec();
 
-    await pusherServer.trigger(toPusherKey(`user:${senderId}`), 'delete-from-friends', {
+    await this.pusher.trigger(toPusherKey(`user:${senderId}`), 'delete-from-friends', {
       status: 'success'
     });
 
