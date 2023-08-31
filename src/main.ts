@@ -14,7 +14,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.enableCors({
       credentials: true,
-      origin: ['http://localhost:3000']
+      origin: ['https://messenger-client-gmust.vercel.app/']
     });
     app.use(
       session({
