@@ -18,7 +18,8 @@ import { ChatService } from './chat.service';
     forwardRef(() => AuthModule)
   ],
   controllers: [ChatController],
-  exports: [ChatService],
-  providers: [ChatService]
+  providers: [ChatService],
+  exports: [ChatService]
 })
-export class ChatModule {}
+export class ChatModule {
+}

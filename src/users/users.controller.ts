@@ -24,7 +24,8 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UsersService, private chatService: ChatService) {}
+  constructor(private userService: UsersService, private chatService: ChatService) {
+  }
 
   @UseGuards(JwtGuard)
   @Post('/add')
@@ -204,6 +205,26 @@ export class UsersController {
     try {
       const results = await this.userService.searchForUsers(email, name);
 
+      return results;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: e.response.error
+        },
+        HttpStatus.BAD_REQUEST,
+        { cause: e }
+      );
+    }
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/all-files')
+  async getUserFilesAndImages(@Body() { userId }: { userId: string }) {
+    if (!userId) throw new HttpException('Enter userId', HttpStatus.BAD_REQUEST);
+    try {
+      const results = await this.chatService.getUserFileAndImages(userId);
       return results;
     } catch (e) {
       console.log(e);

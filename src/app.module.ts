@@ -34,10 +34,11 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     EmailModule,
     ChatModule,
+    UsersModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads')
-    }),
-    UsersModule
+    })
   ]
 })
-export class AppModule {}
+export class AppModule {
+}

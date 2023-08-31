@@ -16,7 +16,7 @@ import { CheckUserDto } from './dto/checkUser.dto';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>
+    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>,
   ) {
   }
 
@@ -258,7 +258,6 @@ export class UsersService {
     const nameRegex = name ? new RegExp(name, 'i') : undefined;
 
     if (email) {
-
     }
     const filterEmail = {};
     const filterName = {};
@@ -273,9 +272,7 @@ export class UsersService {
 
     function mergeAndRemoveDuplicateObjects(arr1, arr2) {
       const mergedArray = arr1.concat(arr2);
-      const uniqueArray = mergedArray.filter((obj, index, self) =>
-        index === self.findIndex((o) => o.id === obj.id)
-      );
+      const uniqueArray = mergedArray.filter((obj, index, self) => index === self.findIndex((o) => o.id === obj.id));
       return uniqueArray;
     }
 
@@ -290,5 +287,12 @@ export class UsersService {
   async changeName(userId: string, newName: string) {
     const user = await this.userModel.findOneAndUpdate({ _id: userId }, { name: newName }, { new: true });
     return user.name;
+  }
+
+  async getAllUsersFiles(userId) {
+    const user = this.userModel.findById(userId);
+    if (!user) {
+      throw new HttpException('There is no user with that id', HttpStatus.BAD_REQUEST);
+    }
   }
 }

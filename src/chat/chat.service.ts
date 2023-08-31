@@ -93,4 +93,20 @@ export class ChatService {
     }
     return chat;
   }
+
+  async getUserFileAndImages(userId: string) {
+    const fileMessages = await this.messageModel.find({
+      sender: userId,
+      messageType: 'file'
+    });
+    const imageMessages = await this.messageModel.find({
+      sender: userId,
+      messageType: 'image'
+    });
+
+    return {
+      fileMessages,
+      imageMessages
+    };
+  }
 }
