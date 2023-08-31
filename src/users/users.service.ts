@@ -16,9 +16,8 @@ import { CheckUserDto } from './dto/checkUser.dto';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>,
-  ) {
-  }
+    @InjectModel(Friend_Requests.name) private friendRequest: Model<FriendRequestsDocument>
+  ) {}
 
   private pusher = pusherServer;
 

@@ -5,12 +5,12 @@ import { PassportModule } from '@nestjs/passport';
 
 import { jwtConfig } from '../config/jwt.config';
 import { EmailModule } from '../email/email.module';
+import { Account, AccountSchema } from '../schemas/accounts.schema';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './utils/GoogleStrategy';
 import { SessionSerializer } from './utils/Serializer';
-import { Account, AccountSchema } from '../schemas/accounts.schema';
 
 @Module({
   imports: [
@@ -24,5 +24,4 @@ import { Account, AccountSchema } from '../schemas/accounts.schema';
   providers: [AuthService, GoogleStrategy, SessionSerializer],
   exports: [AuthService]
 })
-export class AuthModule {
-}
+export class AuthModule {}

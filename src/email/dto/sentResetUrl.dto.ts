@@ -1,8 +1,6 @@
 import { IsEmail, IsNotEmpty, IsUrl } from 'class-validator';
 
-
 export class SentResetUrlDto {
-
   @IsNotEmpty()
   @IsEmail()
   emailTo: string;

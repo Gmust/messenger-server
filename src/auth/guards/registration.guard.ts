@@ -1,17 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { AuthService } from '../auth.service';
-import { AppError } from '../../utils/appError';
+
 import { UsersService } from '../../users/users.service';
+import { AppError } from '../../utils/appError';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class RegistrationGuard implements CanActivate {
-
-  constructor(
-    private authService: AuthService,
-    private userService: UsersService
-  ) {
-  }
+  constructor(private authService: AuthService, private userService: UsersService) {}
 
   async canActivate(
     context: ExecutionContext
@@ -27,7 +23,7 @@ export class RegistrationGuard implements CanActivate {
     const user = await this.userService.findOneUserByEmail(email);
 
     if (user) {
-      throw  new UnauthorizedException(`User with this email:${email} exists`);
+      throw new UnauthorizedException(`User with this email:${email} exists`);
     }
     return true;
   }

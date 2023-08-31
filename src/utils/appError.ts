@@ -1,10 +1,10 @@
-export class AppError extends Error{
+export class AppError extends Error {
   private statusCode: number;
   private status: string;
   private isOperational: boolean;
 
   constructor(massage, statusCode) {
-    super(massage)
+    super(massage);
 
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
@@ -12,6 +12,4 @@ export class AppError extends Error{
 
     Error.captureStackTrace(this, this.constructor);
   }
-
-
 }

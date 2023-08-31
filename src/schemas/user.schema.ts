@@ -65,7 +65,7 @@ export class User {
     required: [true, 'Field confirm password is required!'],
     // Works only on save and create!
     validate: {
-      validator: function(val) {
+      validator: function (val) {
         return val === this.password;
       },
       message: 'Passwords are not the same!'
@@ -88,7 +88,6 @@ export class User {
     type: Date
   })
   resetPasswordExpires;
-
 
   @Prop({
     type: Number,
@@ -118,7 +117,7 @@ async function generateResetToken() {
   }
 }
 
-UserSchema.methods.createPasswordResetToken = async function() {
+UserSchema.methods.createPasswordResetToken = async function () {
   const resetToken = await generateResetToken();
   this.resetPasswordToken = resetToken;
   this.resetPasswordExpires = new Date().getTime() + 10 * 60 * 1000;

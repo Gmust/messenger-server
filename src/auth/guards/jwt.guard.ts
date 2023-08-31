@@ -1,12 +1,11 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Observable } from 'rxjs';
+
 import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
-
-  constructor(private authService: AuthService) {
-  }
+  constructor(private authService: AuthService) {}
 
   async canActivate(
     context: ExecutionContext
@@ -14,11 +13,11 @@ export class JwtGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    if(!request.headers.authorization){
+    if (!request.headers.authorization) {
       throw new UnauthorizedException('Provide authorization token!');
     }
 
-    const token = request.headers.authorization.split(' ')[1]
+    const token = request.headers.authorization.split(' ')[1];
 
     if (!token) {
       throw new UnauthorizedException('Authorization error!');

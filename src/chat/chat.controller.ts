@@ -24,8 +24,7 @@ import { ChatService } from './chat.service';
 
 @Controller('chat')
 export class ChatController {
-  constructor(private chatService: ChatService, private userService: UsersService) {
-  }
+  constructor(private chatService: ChatService, private userService: UsersService) {}
 
   @UseGuards(JwtGuard)
   @Post()

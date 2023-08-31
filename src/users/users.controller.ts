@@ -24,8 +24,7 @@ import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UsersService, private chatService: ChatService) {
-  }
+  constructor(private userService: UsersService, private chatService: ChatService) {}
 
   @UseGuards(JwtGuard)
   @Post('/add')

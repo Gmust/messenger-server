@@ -6,19 +6,15 @@ import {
   Injectable,
   UnauthorizedException
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { Observable } from 'rxjs';
-import { AuthService } from '../auth.service';
-import * as  bcrypt from 'bcrypt';
+
 import { UsersService } from '../../users/users.service';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class LoginGuard implements CanActivate {
-
-  constructor(
-    private authService: AuthService,
-    private userService: UsersService
-  ) {
-  }
+  constructor(private authService: AuthService, private userService: UsersService) {}
 
   async canActivate(
     context: ExecutionContext
@@ -38,7 +34,6 @@ export class LoginGuard implements CanActivate {
 
     if (!match) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-
     }
 
     return true;

@@ -19,8 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
     private emailService: EmailService,
     @InjectModel(Account.name) private accountModel: Model<AccountDocument>
-  ) {
-  }
+  ) {}
 
   async validateUser(email: string): Promise<User | null> {
     const user = await this.usersService.findOneUserByEmail(email);
